@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <title>Været i Halden</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(#2b6cb0, #63b3ed);
+    }
+    h1 { margin: 0; padding-top: 40px; }
+    #na { font-size: 3em; margin: 10px; }
+    #dager { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 20px; }
+    .dag {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 12px;
+      width: 95px;
+    }
+    .ikon { font-size: 2.5em; }
+  </style>
+</head>
+<body>
+  <h1>Været i Halden</h1>
+  <p id="na">Laster...</p>
+  <p id="vind"></p>
+  <div id="dager"></div>
+
+  <script>
+    function ikon(kode) {
+      if (kode == 0) return "☀️";
+      if (kode < 4) return "⛅";
+      if (kode < 50) return "🌫️";
+      if (kode < 70) return "🌧️";
+      if (kode < 80) return "❄️";
+      if (kode < 90) return "🌦️";
+      return "⛈️";
+    }
+
+    fetch("https://api.open-meteo.com/v1/forecast?latitude=59.12&longitude=11.39&current=temperature_2m,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_min,temperature_2m_max&wind_speed_unit=ms&timezone=Europe/Oslo")
+      .then(svar => svar.json())
+      .then(data => {
+        document.getElementById("na").textContent =
+          ikon(data.current.weather_code) + " " + Math.round(data.current.temperature_2m) + " °C";
+        document.getElementById("vind").textContent = "Vind: " + data.current.wind_speed_10m + " m/s";
+
+        data.daily.time.forEach((dato, i) => {
+          const dag = new Date(dato).toLocaleDateString("nb-NO", { weekday: "long" });
+          document.getElementById("dager").innerHTML +=
+            "<div class='dag'><b>" + dag + "</b>" +
+            "<div class='ikon'>" + ikon(data.daily.weather_code[i]) + "</div>" +
+            Math.round(data.daily.temperature_2m_min[i]) + "° / " + Math.round(data.daily.temperature_2m_max[i]) + "°</div>";
+        });
+      });
+  </script>
+</body>
+</html>
